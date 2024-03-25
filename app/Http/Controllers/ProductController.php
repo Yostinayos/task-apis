@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Models\Image;
 use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
@@ -16,8 +17,6 @@ class ProductController extends Controller
     {
         $products = Product::with('category')->with('images')->get();
         return $products;
-
-        
     }
 
     /**
@@ -33,7 +32,17 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-        $product = Product::create($request->validated());
+       $data= $request->validated();
+       $product= new Product;
+       $product->name=$data['name'];
+       
+       $product->price=$data['price'];
+       $product->category_id=$data['category_id'];
+        $product->save();
+        $image= new Image;
+        $image->image=$data['image'];
+        $image->product_id=$product->id;
+        $image->save();
         return $product;
     }
 
@@ -58,8 +67,9 @@ class ProductController extends Controller
      */
     public function update(UpdateProductRequest $request, Product $product)
     {
-        $product->update($request->validated());
-        return $product;
+        $data = $request->validated();
+
+        return $product->update($data);
     }
 
     /**
@@ -70,6 +80,8 @@ class ProductController extends Controller
         $user_abilites = Auth::user()->role;
         if ($user_abilites == 'admin') {
             return $product->delete();
-        }else{echo'notallowedmt allowed';}
+        } else {
+            echo 'notallowedmt allowed';
+        }
     }
 }
